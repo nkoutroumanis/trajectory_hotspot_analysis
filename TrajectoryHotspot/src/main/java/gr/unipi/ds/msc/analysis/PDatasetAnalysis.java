@@ -143,19 +143,21 @@ public class PDatasetAnalysis {
         );
     }
 
-    public static void analyze(String inputPath, String outputPath, double cellSizeInDegrees, double timeStepSize, int outputNumber, long neighborDistance) throws IOException {
+    public static void analyze(String inputPath, String outputPath, double cellSizeInDegrees, double timeStepSize, int outputNumber, long neighborDistance) {
         SparkConf conf = new SparkConf().setAppName("New Dataset Analysis");
         JavaSparkContext sc = new JavaSparkContext(conf);
         FileSystem fs = FileSystem.get(sc.hadoopConfiguration());
-        BufferedWriter output = new BufferedWriter(new OutputStreamWriter(fs.create(new Path(outputPath)), "UTF-8"));
-        output.write("Datacron new Dataset Analysis \n");
-        output.write("----------------------------- \n");
-        output.write("Cell size in degrees used: "+ cellSizeInDegrees + "\n");
-        output.write("Time step size in days: "+ timeStepSize + "\n");
-        output.write("Number of top-k displayed: " + outputNumber + "\n");
-        output.write("Neighbour Distance: " + neighborDistance + "\n");
-        output.write("--------------------------------------------------");
-        try {
+
+        try(BufferedWriter output = new BufferedWriter(new OutputStreamWriter(fs.create(new Path(outputPath)), "UTF-8"))) {
+
+            output.write("Datacron new Dataset Analysis \n");
+            output.write("----------------------------- \n");
+            output.write("Cell size in degrees used: "+ cellSizeInDegrees + "\n");
+            output.write("Time step size in days: "+ timeStepSize + "\n");
+            output.write("Number of top-k displayed: " + outputNumber + "\n");
+            output.write("Neighbour Distance: " + neighborDistance + "\n");
+            output.write("--------------------------------------------------");
+
             if (inputPath.charAt(inputPath.length() - 1) != '/') {
                 inputPath += '/';
             }
@@ -177,8 +179,8 @@ public class PDatasetAnalysis {
             for (int i = 0; i < result.size(); i++) {
                 output.write(result.get(i)._2 + ",  " + result.get(i)._1 + ",  " + "\n");
             }
-        } finally {
-            output.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
         sc.close();
         sc.stop();
